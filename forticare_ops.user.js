@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name                FortiCare Jira (FCLD) Ticket Status
+// @name                FortiCare OPS Ticket Status
 // @description         Matches [EC####] in FortiCare ticket titles and shows the linked Jira Service Management (FCLD) request: status badge + activity-age chip colored by time since last activity. Refresh-on-load, per-badge + bulk refresh.
 // @version             2.7
 // @namespace          https://github.com/motabhai/tampermonkey/blob/main/forticare_ops.user.js
