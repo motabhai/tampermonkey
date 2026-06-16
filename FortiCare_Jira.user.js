@@ -2,7 +2,7 @@
 // @name                FortiCare Jira (FCLD) Ticket Status
 // @description         Matches [EC####] in FortiCare ticket titles and shows the linked Jira Service Management (FCLD) request: status badge + activity-age chip colored by time since last activity. Refresh-on-load, per-badge + bulk refresh.
 // @version             3.1
-// @namespace          https://github.com/motabhai/tampermonkey/blob/main/FortiCare_Jira.js
+// @namespace          https://github.com/motabhai/tampermonkey/blob/main/FortiCare_Jira.user.js
 // @author              peisenberg@fortinet.com
 // @grant               GM_xmlhttpRequest
 // @grant               GM_getValue
