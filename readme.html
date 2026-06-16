@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="FortiCare OPS &amp; Jira status userscripts">
+<meta name="author" content="tmscripts@fortinet.com">
+<link rel="icon" href="User%20Scripts_files/favicon.ico">
+
+<title>User Scripts</title>
+
+<!-- Bootstrap Core CSS -->
+<link href="User%20Scripts_files/bootstrap.min.css" rel="stylesheet">
+<!-- Custom CSS -->
+<link href="User%20Scripts_files/simple-sidebar.css" rel="stylesheet">
+<!-- Custom styles for this template -->
+<link href="User%20Scripts_files/jumbotron.css" rel="stylesheet">
+
+<style>
+    /* small badge previews so the page mirrors what the scripts render */
+    .badge-demo{display:inline-flex;align-items:center;border-radius:4px;overflow:hidden;
+        font:700 11px/1.5 "Segoe UI",Arial,sans-serif;background:#e5e7eb;vertical-align:middle;}
+    .badge-demo .r{padding:1px 5px;color:#374151;}
+    .badge-demo .s{padding:1px 6px;color:#fff;}
+    .badge-demo .a{padding:1px 6px;border-left:1px solid rgba(0,0,0,.18);color:#000;}
+    code.kbd{background:#f4f4f4;border:1px solid #ddd;border-radius:3px;padding:0 4px;}
+</style>
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <ul class="sidebar-nav">
+                <li class="sidebar-brand"><a href="http://www.fortinet.com/">
+                        <img src="User%20Scripts_files/fortinet_logo.png" width="80%">
+                </a></li>
+                <li><a href="#home" id="home_nav">Home</a></li>
+                <li><a href="#forticare" id="forticare_nav">FortiCare Scripts</a></li>
+                <li><a href="#tutorial" id="tutorial_nav">Install tutorial</a></li>
+                <li><a href="mailto:tmscripts@fortinet.com?subject=User%20Scripts" id="contact_nav">Contact</a></li>
+            </ul>
+            <div style="position: absolute; bottom: 10px; left: 22%; font-size: 14px; color: white">
+                Jun 16, 2026 <br> tmscripts@fortinet.com
+            </div>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid" id="home">
+
+                <div class="jumbotron">
+                    <h1>User Scripts</h1>
+                    <br>
+                    <p class="lead">Show the live status of linked OPS and Jira requests directly in the
+                        FortiCare ticket lists, as colour-coded badges with a time-since-last-activity chip.</p>
+                </div>
+
+                <h2>Before you start</h2>
+                <br>
+                <p class="lead">These two scripts are standalone &mdash; they do <b>not</b> require the old
+                    <i>FortiCare Ticket List</i> script. They read status using your existing browser session, so:</p>
+                <ul class="lead">
+                    <li>Be signed in to <a href="https://ops.fortisase.com/">ops.fortisase.com</a> for the OPS script.</li>
+                    <li>Be signed in to the <a href="https://jira.servicedesk.myfortinet.com/">Jira Service Management portal</a> for the Jira script.</li>
+                    <li>On first run, when Tampermonkey asks to access a cross-origin domain, choose
+                        <b>&ldquo;Always allow domain&rdquo;</b>.</li>
+                </ul>
+                <p class="lead">A badge looks like this &mdash; refresh control, status, then time since last activity:
+                    &nbsp;<span class="badge-demo"><span class="r">&#x21BB;</span><span class="s" style="background:#ef4444">OP510288 &middot; OPEN</span><span class="a" style="background:#84cc16">20m</span></span>
+                    &nbsp;<span class="badge-demo"><span class="r">&#x21BB;</span><span class="s" style="background:#f59e0b;color:#000">EC7928 &middot; IN PROGRESS</span><span class="a" style="background:#eab308">3h</span></span>
+                </p>
+
+                <div class="row marketing">
+                    <div class="col-lg-6">
+                        <h4>FortiCare OPS Status</h4>
+                        <p>Matches <code class="kbd">[OP######]</code> in ticket titles and shows the linked
+                            ops.fortisase.com request status.</p>
+                        <p><a class="btn btn-danger" href="#forticare">View <span class="glyphicon glyphicon-chevron-right"></span></a></p>
+                    </div>
+                    <div class="col-lg-6">
+                        <h4>FortiCare Jira (FCLD) Status</h4>
+                        <p>Matches <code class="kbd">[EC######]</code> in ticket titles and shows the linked
+                            Jira Service Management (FCLD) request status.</p>
+                        <p><a class="btn btn-danger" href="#forticare">View <span class="glyphicon glyphicon-chevron-right"></span></a></p>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <a href="#forticare" class="btn btn-lg scroll-button"><i class="indicator glyphicon glyphicon-chevron-down"></i></a>
+                </div>
+            </div>
+
+            <div class="page-header" id="forticare">
+                <h1>FortiCare Scripts</h1>
+            </div>
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Scripts</h3>
+                </div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Version</th>
+                            <th>Source</th>
+                            <th>Install</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>FortiCare OPS Ticket Status</td>
+                            <td>Matches <code class="kbd">[OP######]</code> references in ticket titles and shows
+                                the live status of the linked ops.fortisase.com (Zendesk) request as a colour-coded
+                                badge, plus a chip showing time since the request&rsquo;s last activity. Works on the
+                                ticket lists, SLA Monitor and Search pages. Standalone.</td>
+                            <td>202606122000000</td>
+                            <td><a href="https://github.com/motabhai/tampermonkey/blob/main/forticare_ops.user.js">GitHub</a></td>
+                            <td><a href="https://github.com/motabhai/tampermonkey/raw/main/forticare_ops.user.js">forticare_ops.user.js</a></td>
+                        </tr>
+                        <tr>
+                            <td>FortiCare Jira (FCLD) Ticket Status</td>
+                            <td>Matches <code class="kbd">[EC######]</code> references in ticket titles and shows the
+                                live status of the linked Jira Service Management (FCLD) request as a colour-coded
+                                badge (blue=To&nbsp;Do, amber=In&nbsp;Progress, green=Done), plus a time-since-last-activity
+                                chip. Standalone.</td>
+                            <td>202606122000000</td>
+                            <td><a href="https://github.com/motabhai/tampermonkey/blob/main/FortiCare_Jira.user.js">GitHub</a></td>
+                            <td><a href="https://github.com/motabhai/tampermonkey/raw/main/FortiCare_Jira.user.js">FortiCare_Jira.user.js</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="page-header" id="tutorial">
+                <h1>Installation Tutorial</h1>
+            </div>
+
+            <p>
+                These user scripts are compatible with the
+                <a href="http://tampermonkey.net/"><b>Tampermonkey extension</b></a>. Tampermonkey is the most
+                popular userscript manager, with over 10 million users.
+            </p>
+
+            <p>
+                <img src="User%20Scripts_files/orange-warning.png" width="24px"><b> If you still use the
+                Greasemonkey extension with Firefox, please uninstall it (it is no longer supported since
+                Firefox 57) and install Tampermonkey instead.</b>
+            </p>
+
+            <p>The Tampermonkey extension and these userscripts have been tested with:</p>
+            <ul>
+                <li><a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo">Chrome / Brave browsers</a></li>
+                <li><a href="https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/">Firefox</a></li>
+            </ul>
+
+            <p>Tampermonkey makes it easy to manage your userscripts and provides a clear overview of running
+                scripts, a built-in editor, import/export and automatic update checks.</p>
+
+            <h2>Instructions for Chrome</h2>
+            <ul>
+                <li>Open Chrome and go to
+                    <a href="https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo">the Tampermonkey web store page</a>.<br><br></li>
+                <li>Click on &ldquo;Add to Chrome&rdquo;<br><br>
+                    <img width="50%" src="User%20Scripts_files/chrome1.png" class="img-thumbnail"></li>
+                <br>
+                <li>Click on &ldquo;Add extension&rdquo;<br><br>
+                    <img src="User%20Scripts_files/chrome2.png" class="img-thumbnail"></li>
+                <br>
+                <li>Tampermonkey is now installed on your Chrome browser<br><br>
+                    <img width="50%" src="User%20Scripts_files/chrome3.png" class="img-thumbnail"></li>
+                <br>
+                <li>In the <b>Scripts</b> table above, click the script&rsquo;s <b>Install</b> link
+                    (<code class="kbd">forticare_ops.user.js</code> or <code class="kbd">FortiCare_Jira.user.js</code>),
+                    then click &ldquo;Install&rdquo; in Tampermonkey.<br><br>
+                    <img width="50%" src="User%20Scripts_files/chrome4.png" class="img-thumbnail"></li>
+                <br>
+                <li>On first run, when the script requests access to a cross-origin resource
+                    (ops.fortisase.com or the Jira portal), click &ldquo;Always allow domain&rdquo;.<br><br>
+                    <img width="50%" src="User%20Scripts_files/chrome5.png" class="img-thumbnail"></li>
+            </ul>
+
+            <h2>Instructions for Firefox</h2>
+            <ul>
+                <li>Open Firefox and go to
+                    <a href="https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/">the Tampermonkey add-on page</a>.<br><br></li>
+                <li>Click on &ldquo;Add to Firefox&rdquo;<br><br>
+                    <img width="50%" src="User%20Scripts_files/firefox1.png" class="img-thumbnail"></li>
+                <br>
+                <li>Click on &ldquo;Add&rdquo;<br><br>
+                    <img src="User%20Scripts_files/firefox2.png" class="img-thumbnail"></li>
+                <br>
+                <li>Click on &ldquo;OK&rdquo;<br><br>
+                    <img src="User%20Scripts_files/firefox3.png" class="img-thumbnail"></li>
+                <br>
+                <li>Tampermonkey is now installed on your Firefox browser<br><br>
+                    <img width="50%" src="User%20Scripts_files/firefox4.png" class="img-thumbnail"></li>
+                <br>
+                <li>In the <b>Scripts</b> table above, click the script&rsquo;s <b>Install</b> link,
+                    then click &ldquo;Install&rdquo; in Tampermonkey.<br><br>
+                    <img width="50%" src="User%20Scripts_files/firefox5.png" class="img-thumbnail"></li>
+                <br>
+                <li>On first run, when the script requests access to a cross-origin resource, click
+                    &ldquo;Always allow domain&rdquo;.<br><br>
+                    <img width="50%" src="User%20Scripts_files/firefox6.png" class="img-thumbnail"></li>
+            </ul>
+
+        </div>
+        <!-- /#page-content-wrapper -->
+    </div>
+    <!-- /#wrapper -->
+
+    <!-- jQuery + Bootstrap (local) -->
+    <script src="User%20Scripts_files/jquery.js"></script>
+    <script src="User%20Scripts_files/bootstrap.min.js"></script>
+    <script>
+        // Highlight the active sidebar link on click (the old script.js is no longer needed).
+        (function () {
+            var links = document.querySelectorAll('#sidebar-wrapper .sidebar-nav a');
+            function setActive() {
+                var h = location.hash || '#home';
+                links.forEach(function (a) {
+                    a.style.color = a.getAttribute('href') === h ? '#fff' : '';
+                });
+            }
+            window.addEventListener('hashchange', setActive);
+            setActive();
+        })();
+    </script>
+</body>
+</html>
