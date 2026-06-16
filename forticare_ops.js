@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name                FortiCare OPS Ticket Status
 // @description         Matches [OP######] in FortiCare ticket titles and shows the linked ops.fortisase.com (Zendesk) request: status badge + activity-age chip. One badge per OPS id (handles SLA-Monitor row cloning). Refresh-on-load, per-badge + bulk refresh.
-// @version             2.4
-// @namespace           TBA
-// @author              peisenber@fortinet.com
+// @version             2.6
+// @namespace           https://github.com/motabhai/tampermonkey
+// @author              peisenberg@fortinet.com
 // @grant               GM_xmlhttpRequest
 // @grant               GM_getValue
 // @grant               GM_setValue
@@ -306,15 +306,41 @@
         resolve(id, span);
     }
 
+    // A cell only counts as a host if it sits in a real ticket row, i.e. its
+    // row contains a ticket-number link (...?TID=...). This keeps badges inline
+    // in the title cell and ignores summaries / search-page echoes / empty
+    // helper tables that also contain the [OP..] text.
+    function rowHasTicketLink(cell) {
+        var tr = cell.closest && cell.closest('tr');
+        return !!(tr && tr.querySelector('a[href*="TID="]'));
+    }
+    // A leaf cell holds the title text directly; wrapper cells that merely
+    // contain the whole results table (and thus all the [OP..] text) are
+    // rejected so the badge lands in the title cell, not after the table.
+    function isLeafCell(cell) {
+        return !cell.querySelector('td, table');
+    }
+
     function scanScope() {
-        var cells = document.querySelectorAll('td, #ctl00_MainContent_L_Title, #ctl00_MainContent_L_Info');
-        var firstCell = {}; // id -> first VISIBLE cell whose title text contains [OP id]
-        cells.forEach(function (cell) {
-            if (!isVisible(cell)) return;
+        var firstCell = {}; // id -> the title cell of the first visible ticket row
+
+        document.querySelectorAll('td').forEach(function (cell) {
+            if (!isVisible(cell) || !isLeafCell(cell) || !rowHasTicketLink(cell)) return;
             extractIds(cell.textContent || '').forEach(function (id) {
                 if (!firstCell[id]) firstCell[id] = cell;
             });
         });
+
+        // Fallback for the single-ticket detail page, where the title lives in a
+        // header element rather than a table row.
+        ['ctl00_MainContent_L_Title', 'ctl00_MainContent_L_Info'].forEach(function (eid) {
+            var el = document.getElementById(eid);
+            if (!el || !isVisible(el)) return;
+            extractIds(el.textContent || '').forEach(function (id) {
+                if (!firstCell[id]) firstCell[id] = el;
+            });
+        });
+
         Object.keys(firstCell).forEach(function (id) { reconcileId(id, firstCell[id]); });
         // Forget badges that fell out of the DOM entirely.
         Object.keys(live).forEach(function (id) {
