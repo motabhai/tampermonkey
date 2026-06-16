@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name                FortiCare Jira (FCLD) Ticket Status
 // @description         Matches [EC####] in FortiCare ticket titles and shows the linked Jira Service Management (FCLD) request: status badge + activity-age chip colored by time since last activity. Refresh-on-load, per-badge + bulk refresh.
-// @version             3
-// @namespace          TBA
+// @version             3.1
+// @namespace          https://github.com/motabhai/tampermonkey/blob/main/FortiCare_Jira.js
 // @author              peisenberg@fortinet.com
 // @grant               GM_xmlhttpRequest
 // @grant               GM_getValue
@@ -340,27 +340,72 @@
     }
 
     // =========================================================================
-    // SCAN
+    // SCAN + RECONCILE  -- exactly one live badge per Jira id, in a visible
+    // title cell. Works standalone (no dependency on the main FortiCare script)
+    // and survives the SLA-Monitor row cloning.
     // =========================================================================
+    var live = {}; // num -> live badge span we created
+
     function extractIds(text) {
         var re = new RegExp(JSM.idPattern, 'gi'); var ids = {}, m;
         while ((m = re.exec(text)) !== null) { ids[m[1]] = true; }
         return Object.keys(ids);
     }
     function isVisible(el) { return !!(el && el.offsetParent !== null); }
-    function scanScope(root) {
-        (root || document).querySelectorAll('td, #ctl00_MainContent_L_Title, #ctl00_MainContent_L_Info')
-            .forEach(processCell);
+
+    // Real ticket rows carry a ...?TID=... link, but that link is added by the
+    // main FortiCare script. So this is only a PREFERENCE: when present we anchor
+    // to that row; when absent (main script disabled) we fall back to the first
+    // visible leaf title cell.
+    function rowHasTicketLink(cell) {
+        var tr = cell.closest && cell.closest('tr');
+        return !!(tr && tr.querySelector('a[href*="TID="]'));
     }
-    function processCell(cell) {
-        if (!cell || (cell.getAttribute && cell.getAttribute('data-jsm-scanned'))) return;
-        if (!isVisible(cell)) return;
-        var ids = extractIds(cell.textContent || '');
-        if (!ids.length) return;
-        cell.setAttribute('data-jsm-scanned', '1');
-        ids.forEach(function (num) {
-            if (cell.querySelector('.jsm-badge-' + num)) return;
-            var span = badgeEl(num); cell.appendChild(span); resolve(num, span);
+    // Leaf cell holds the title text directly; wrapper cells that contain the
+    // whole results table are rejected so the badge lands in the title cell.
+    function isLeafCell(cell) { return !cell.querySelector('td, table'); }
+
+    function reconcileId(num, hostCell) {
+        var cur = live[num];
+        document.querySelectorAll('.jsm-badge-' + num).forEach(function (b) {
+            if (b !== cur) b.remove(); // strip clones
+        });
+        if (cur && document.contains(cur) && isVisible(cur)) return;
+        if (cur) { cur.remove(); delete live[num]; }
+        if (!hostCell || !isVisible(hostCell)) return;
+        var span = badgeEl(num);
+        hostCell.appendChild(span);
+        live[num] = span;
+        resolve(num, span);
+    }
+
+    function scanScope() {
+        var firstCell = {}; // num -> { cell, inRow }
+
+        document.querySelectorAll('td').forEach(function (cell) {
+            if (!isVisible(cell) || !isLeafCell(cell)) return;
+            var ids = extractIds(cell.textContent || '');
+            if (!ids.length) return;
+            var inRow = rowHasTicketLink(cell);
+            ids.forEach(function (num) {
+                var c = firstCell[num];
+                if (!c) firstCell[num] = { cell: cell, inRow: inRow };
+                else if (!c.inRow && inRow) firstCell[num] = { cell: cell, inRow: inRow };
+            });
+        });
+
+        // Fallback for the single-ticket detail page (title in a header element).
+        ['ctl00_MainContent_L_Title', 'ctl00_MainContent_L_Info'].forEach(function (eid) {
+            var el = document.getElementById(eid);
+            if (!el || !isVisible(el)) return;
+            extractIds(el.textContent || '').forEach(function (num) {
+                if (!firstCell[num]) firstCell[num] = { cell: el, inRow: false };
+            });
+        });
+
+        Object.keys(firstCell).forEach(function (num) { reconcileId(num, firstCell[num].cell); });
+        Object.keys(live).forEach(function (num) {
+            if (!live[num] || !document.contains(live[num])) delete live[num];
         });
     }
 
@@ -373,33 +418,31 @@
         b.id = 'jsm-refresh-all'; b.textContent = '\u21BB JIRA';
         b.title = 'Refresh all Jira (FCLD) statuses on this page (ignores cache)';
         b.addEventListener('click', function () {
-            document.querySelectorAll('.jsm-badge').forEach(function (span) {
-                forceRefresh(span.getAttribute('data-jsm-num'), span);
+            Object.keys(live).forEach(function (num) {
+                if (live[num]) forceRefresh(num, live[num]);
             });
         });
         document.body.appendChild(b);
     }
 
     // =========================================================================
-    // BOOT
+    // BOOT  -- disconnect the observer around our own DOM writes to avoid loops.
     // =========================================================================
+    var obs = null, pending = null;
+    function safeScan() {
+        if (obs) obs.disconnect();
+        try { scanScope(); } finally { if (obs) obs.observe(document.body, { childList: true, subtree: true }); }
+    }
     function boot() {
         cacheClearExpired();
         forceNextResolve = !!JSM.refreshOnLoad;
-        scanScope(document);
+        scanScope();
         forceNextResolve = false;
         addRefreshAllButton();
 
-        var pending = null;
-        var obs = new MutationObserver(function (muts) {
-            var relevant = muts.some(function (mu) {
-                return ![].some.call(mu.addedNodes, function (n) {
-                    return n.nodeType === 1 && n.classList && n.classList.contains('jsm-badge');
-                });
-            });
-            if (!relevant) return;
+        obs = new MutationObserver(function () {
             clearTimeout(pending);
-            pending = setTimeout(function () { scanScope(document); }, 400);
+            pending = setTimeout(safeScan, 400);
         });
         try { obs.observe(document.body, { childList: true, subtree: true }); } catch (e) {}
     }
