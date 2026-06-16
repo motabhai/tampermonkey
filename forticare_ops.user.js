@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name                FortiCare OPS Ticket Status
 // @description         Matches [OP######] in FortiCare ticket titles and shows the linked ops.fortisase.com (Zendesk) request: status badge + activity-age chip. One badge per OPS id (handles SLA-Monitor row cloning). Refresh-on-load, per-badge + bulk refresh.
-// @version             107
+// @version             2.7
 // @namespace           https://userscripts.frval.fortinet-emea.com/
 // @author              peisenberg@fortinet.com
 // @grant               GM_xmlhttpRequest
